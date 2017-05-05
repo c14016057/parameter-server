@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package keyvector;
+
+service pushPullRequest {
+	rpc push (keyVectorMessage) returns (Empty) {}
+	rpc pull (keyMessage) returns (vectorMessage) {}
+}
+
+message Empty {
+
+}
+
+message keyMessage {
+	int32 key = 1;
+}
+
+message vectorMessage {
+	repeated double v = 2;
+}
+
+message keyVectorMessage {
+	int32 key = 1;
+	repeated double v = 2;
+}
+
+
