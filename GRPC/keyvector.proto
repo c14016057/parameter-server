@@ -12,16 +12,17 @@ message Empty {
 }
 
 message keyMessage {
-	int32 key = 1;
+	repeated int32 key = 1;
 }
 
 message vectorMessage {
-	repeated double v = 2;
+	repeated double val = 2;
 }
 
 message keyVectorMessage {
-	int32 key = 1;
-	repeated double v = 2;
+	repeated int32 key = 1;
+	repeated double val = 2;
+	int32 iter = 3;
 }
 
 
