@@ -44,6 +44,9 @@ class paramClient {
 			std::cout << status.error_code() << ": " << status.error_message() << std::endl;
 			return ;
 		}
+
+		cout << response.val(0) << endl;
+
 		
 	}
 
