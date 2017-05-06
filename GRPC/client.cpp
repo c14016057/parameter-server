@@ -5,6 +5,8 @@
 #include <grpc++/grpc++.h>
 #include "keyvector.grpc.pb.h"
 
+#include <ctime>
+
 #define NUM_KEY 5000
 #define NUM_VALUE_PERKEY 1000
 
@@ -34,8 +36,7 @@ class paramClient {
 
 		for(int i = 0 ; i < numKey ; ++i)
 			keyMsg.add_key( key[i] );
-		
-		
+
 
 		Status status = stub_->pull(&context, keyMsg, &response);	
 		if (status.ok()) 
@@ -99,8 +100,14 @@ int main(int argc, char** argv) {
 		for(int j = 0 ; j < NUM_KEY ; ++j)
 			for(int k = 0 ; k < NUM_VALUE_PERKEY ; ++k)
 				vals[j][k] = dRandGen(0, 1);
-	
+		
+		clock_t start, end;
+		start = clock();
+
 		client.push(keys, (double **)vals, NUM_KEY, NUM_VALUE_PERKEY, i);	
+
+		end = clock();
+		cout << (double)(end - start) / CLOCKS_PER_SEC;
 	
 		
 		//	DO ML COMPUTE.

@@ -18,10 +18,10 @@ grpc.pb.cc: keyvector.proto
 pb.cc: keyvector.proto
 	protoc --cpp_out=. keyvector.proto
 
-paramServer: keyvector.grpc.pb.o  keyvector.pb.o  server.o
+server: keyvector.grpc.pb.o  keyvector.pb.o  server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-paramClient: keyvector.grpc.pb.o  keyvector.pb.o  client.o
+client: keyvector.grpc.pb.o  keyvector.pb.o  client.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 clean:
