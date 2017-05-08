@@ -39,13 +39,13 @@ class paramClient {
 
 		Status status = stub_->pull(&context, keyMsg, &response);	
 		if (status.ok()) 
-			std::cout << "ok, Pulled." << std::endl;
+			std::cout << "ok, Pulled. avg = " << response.val(0) << std::endl;
 		else{ 
 			std::cout << status.error_code() << ": " << status.error_message() << std::endl;
 			return ;
 		}
 
-		cout << response.val(0) << endl;
+//		cout << response.val(0) << endl;
 
 		
 	}
@@ -97,13 +97,13 @@ int main(int argc, char** argv) {
 	    vals[i] = new double[NUM_VALUE_PERKEY];
 
 	
-	for(int i = 0 ; i < 1 ; ++i){
+	for(int i = 0 ; i < 10 ; ++i){      // ML Iteration.
 
 		for(int j = 0 ; j < NUM_KEY ; ++j)
 			for(int k = 0 ; k < NUM_VALUE_PERKEY ; ++k)
 				vals[j][k] = dRandGen(0, 1);
 	
-		client.push(keys, (double **)vals, NUM_KEY, NUM_VALUE_PERKEY, i);	
+		client.push(keys, (double **)vals, NUM_KEY, NUM_VALUE_PERKEY, i);
 	
 		
 		//	DO ML COMPUTE.
