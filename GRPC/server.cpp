@@ -20,87 +20,109 @@ using keyvector::keyVectorMessage;
 using std::cout;
 using std::endl;
 
+#define NUM_CLIENT 2
 
 int readyCount;
+int pullCount;
 bool isAggregated;
+double avg;
 std::mutex mutex_;
 
 double aggregate(int *keys) {
-	// Do Sync.
+        // Do Sync.
 
-	while(readyCount != 2)
-		;
+        while(pullCount != 0)
+                ;
 
-	return 0.87;		
+        mutex_.lock();
+        ++readyCount;
+        mutex_.unlock();
+
+        while(readyCount != NUM_CLIENT)
+                ;
+
+        mutex_.lock();
+        if(isAggregated == false) {
+                // do average
+
+                avg = 0.87;
+                isAggregated = true;
+                ++pullCount;
+                mutex_.unlock();
+        }
+        else {
+                // read average
+                avg = 0.78;
+
+                if( ++pullCount == NUM_CLIENT ) {
+                        isAggregated = false;
+                        pullCount = 0;
+                        readyCount = 0;
+                }
+                mutex_.unlock();
+        }
+
+        return avg;
 }
-
 
 class ParamServerServiceImpl final : public pushPullRequest::Service {
 
   Status push(ServerContext* context, const keyVectorMessage* request, Empty* response) override {
 
-	
-	cout << "Pushed. Iteration:" << request->iter() << endl;
 
-	/*
-	for(int i = 1 ; i < 100 ; ++i){
-		cout << request->key(i) << ":" << request->val(i) << endl;
-	}*/
+        cout << "Pushed. Iteration:" << request->iter() << endl;
 
-	mutex_.lock();
-	++readyCount;
-	mutex_.unlock();
+        /*
+        for(int i = 1 ; i < 100 ; ++i){
+                cout << request->key(i) << ":" << request->val(i) << endl;
+        }*/
 
-	return Status::OK;
+
+        return Status::OK;
   }
-  
+
   Status pull(ServerContext* context, const keyMessage* request, vectorMessage* response) override {
-	
-	int numkey = request->key_size();
-	int *keys = new int[numkey];
 
-	cout << "Pulled." << endl;
-	
+        int numkey = request->key_size();
+        int *keys = new int[numkey];
 
-	for(int i = 0 ; i < numkey ; ++i){
-		keys[i] = request->key(i);
-	}
+        cout << "Pulled." << endl;
 
-//	mutex_.lock();
-	double avg = aggregate(keys);
-//	mutex_.unlock();
 
-	response->add_val(avg);
+        for(int i = 0 ; i < numkey ; ++i){
+                keys[i] = request->key(i);
+        }
 
-	
+        double avg = aggregate(keys);
 
-	delete [] keys;
-	return Status::OK;
+        response->add_val(avg);
+
+
+
+        delete [] keys;
+        return Status::OK;
   }
 };
 
 void RunServer() {
-	std::string server_address("0.0.0.0:50051");
-	ParamServerServiceImpl service;
+        std::string server_address("0.0.0.0:50051");
+        ParamServerServiceImpl service;
 
-	ServerBuilder builder;
-	builder.SetMaxMessageSize(100 * 1024 * 1024);
-	builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-	builder.RegisterService(&service);
-	std::unique_ptr<Server> server(builder.BuildAndStart());
-	std::cout << "Server listening on " << server_address << std::endl;
+        ServerBuilder builder;
+        builder.SetMaxMessageSize(100 * 1024 * 1024);
+        builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+        builder.RegisterService(&service);
+        std::unique_ptr<Server> server(builder.BuildAndStart());
+        std::cout << "Server listening on " << server_address << std::endl;
 
-	server->Wait();
+        server->Wait();
 }
 
 int main(int argc, char** argv) {
-	readyCount = 0;
-	isAggregated = false;
-	RunServer();
+        readyCount = 0;
+        pullCount = 0;
+        isAggregated = false;
+        RunServer();
 
-	return 0;
+        return 0;
 }
-
-
-
-
