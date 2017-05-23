@@ -3,8 +3,8 @@ syntax = "proto3";
 package keyvector;
 
 service pushPullRequest {
-	rpc push (keyVectorMessage) returns (Empty) {}
-	rpc pull (keyMessage) returns (vectorMessage) {}
+        rpc push (keyVectorMessage) returns (Empty) {}
+        rpc pull (keyMessage) returns (vectorMessage) {}
 }
 
 message Empty {
@@ -12,17 +12,15 @@ message Empty {
 }
 
 message keyMessage {
-	repeated int32 key = 1;
+        repeated int32 key = 1;
 }
 
 message vectorMessage {
-	repeated double val = 2;
+        repeated float val = 1;
 }
 
 message keyVectorMessage {
-	repeated int32 key = 1;
-	repeated double val = 2;
-	int32 iter = 3;
+        repeated int32 key = 1;
+        repeated float val = 2;
+        int32 iter = 3;
 }
-
-
