@@ -20,26 +20,27 @@ using keyvector::keyVectorMessage;
 using std::cout;
 using std::endl;
 
-#define NUM_CLIENT 25
+#define NUM_CLIENT 1
 //#define MAX_CLIENT 16
-#define MAX_KEY 500
-#define MAX_VALUE 100
+#define MAX_KEY 5000
+#define MAX_VALUE 1000
+#define MAXP MAX_KEY*MAX_VALUE
+#define SENDTYPE double
 int readyCount;
 int pullCount = 0, pushCount = 0;
 bool isAggregated, canPush = true, canPull = false;
 //double valueTable[MAX_CLIENT][MAX_KEY][MAX_VALUE] = {};
-double avgValue[MAX_KEY][MAX_VALUE]= {};
+SENDTYPE avgValue[MAX_KEY*MAX_VALUE]= {};
 std::mutex pull_mutex, push_mutex;
 
-double * aggregate(int *keys, int numkey) {
+SENDTYPE * aggregate(int *keys, int numkey, int numP) {
 	if(isAggregated == false) {
 		// do average
-		for (int i = 0; i < MAX_KEY; i++)
-			for (int j = 0; j < MAX_VALUE; j++)
-				avgValue[i][j] /= (double)NUM_CLIENT;
+		for (int i = 0; i < numP; i++)
+				avgValue[i] /= (double)NUM_CLIENT;
 		isAggregated = true;
 	}
-	return avgValue[0];
+	return avgValue;
 }
 
 class ParamServerServiceImpl final : public pushPullRequest::Service {
@@ -53,12 +54,13 @@ class ParamServerServiceImpl final : public pushPullRequest::Service {
 
 		//Push
 		push_mutex.lock();
-		for (int i = 0 ; i < MAX_KEY ; ++i) {
-			for (int j = 0; j < MAX_VALUE; j++) {
-				avgValue[i][j] += vector->val(i*MAX_VALUE + j);
-			}
-		}
 
+
+		int numP = vector->nump();
+		for (int i = 0; i < numP; i++) {
+			avgValue[i] += vector->val(i);
+			//if (avgValue[i][j] != 0.1) printf("error\n");
+		}
 		if (++pushCount == NUM_CLIENT) {
 			//ALL CLIENT IS PUSHED
 			pushCount = 0;
@@ -76,20 +78,19 @@ class ParamServerServiceImpl final : public pushPullRequest::Service {
 
 		int numkey = reqkey->key_size();
 		int *keys = new int[numkey];
-
+		int numP = reqkey->nump();
 		//Wait for all push done.
 		while(!canPull);
 		cout << "Pulled." << endl;
-
+		/*
 		for(int i = 0 ; i < numkey ; ++i){
 			keys[i] = reqkey->key(i);
-		}
+		}*/
 		pull_mutex.lock();
-		double *avg = aggregate(keys, numkey);
+		SENDTYPE *avg = aggregate(keys, numkey, numP);
 
-		for(int i = 0; i < MAX_KEY; i++)
-			for(int j =0; j < MAX_VALUE; j++)
-				retValue->add_val( avg[i*j] );
+		for(int i = 0; i < numP; i++)
+				retValue->add_val( avg[i] );
 
 		if (++pullCount == NUM_CLIENT) {
 			//ALL CLIENT IS PULLED
@@ -97,9 +98,8 @@ class ParamServerServiceImpl final : public pushPullRequest::Service {
 			canPush = true;
 			canPull = false;
 			isAggregated = false;
-			for(int i = 0; i < MAX_KEY; i++)
-				for(int j =0; j < MAX_VALUE; j++)
-					avgValue[i][j] = 0;
+			for(int i = 0; i < MAXP; i++)
+					avgValue[i] = 0;
 		}
 		pull_mutex.unlock();
 				
