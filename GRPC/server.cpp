@@ -20,7 +20,7 @@ using keyvector::keyVectorMessage;
 using std::cout;
 using std::endl;
 
-#define NUM_CLIENT 1
+#define NUM_CLIENT 2
 //#define MAX_CLIENT 16
 #define MAX_KEY 5000
 #define MAX_VALUE 1000
@@ -29,7 +29,6 @@ using std::endl;
 int readyCount;
 int pullCount = 0, pushCount = 0;
 bool isAggregated, canPush = true, canPull = false;
-//double valueTable[MAX_CLIENT][MAX_KEY][MAX_VALUE] = {};
 SENDTYPE avgValue[MAX_KEY*MAX_VALUE]= {};
 std::mutex pull_mutex, push_mutex;
 
@@ -59,7 +58,6 @@ class ParamServerServiceImpl final : public pushPullRequest::Service {
 		int numP = vector->nump();
 		for (int i = 0; i < numP; i++) {
 			avgValue[i] += vector->val(i);
-			//if (avgValue[i][j] != 0.1) printf("error\n");
 		}
 		if (++pushCount == NUM_CLIENT) {
 			//ALL CLIENT IS PUSHED
