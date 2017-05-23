@@ -5,10 +5,10 @@
 #include <grpc++/grpc++.h>
 #include "keyvector.grpc.pb.h"
 
-#define NUM_KEY 500
-#define NUM_VALUE 100
-#define THREAD_NUM 1000
-
+#define NUM_KEY 5000
+#define NUM_VALUE 1000
+#define THREAD_NUM 1
+#define SENDTYPE double
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
@@ -55,7 +55,7 @@ class paramClient {
 		}
 
 
-		void push(int* keys, double** vals, int numKey, int numVal, int iter) {
+		void push(int* keys, SENDTYPE** vals, int numKey, int numVal, int iter) {
 			ClientContext context;
 			keyVectorMessage kvMsg;
 			Empty response;
@@ -89,29 +89,29 @@ double dRandGen(double dMin, double dMax) {
 }
 
 int main(int argc, char** argv) {
-	//paramClient client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()));
+	paramClient client(grpc::CreateChannel("140.112.30.241:50051", grpc::InsecureChannelCredentials()));
 
-	grpc::ChannelArguments channelArgs;
-    	channelArgs.SetInt("grpc.max_receive_message_length", 64 * 1024 * 1024);
-	paramClient client(grpc::CreateCustomChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials(), channelArgs));
+//	grpc::ChannelArguments channelArgs;
+//    channelArgs.SetInt("GRPC_ARG_MAX_MESSAGE_LENGTH", 100 * 1024 * 1024);
+//	paramClient client(grpc::CreateCustomChannel("140.112.30.241:50051", grpc::InsecureChannelCredentials(), channelArgs));
 	int* keys = new int[NUM_KEY];
 	for(int i = 0 ; i < NUM_KEY ; ++i)
 		keys[i] = i;
 
-	double** vals = new double *[NUM_KEY];
+	SENDTYPE** vals = new SENDTYPE *[NUM_KEY];
 	for(int i = 0 ; i < NUM_KEY ; ++i)
-		vals[i] = new double[NUM_VALUE];
+		vals[i] = new SENDTYPE[NUM_VALUE];
 
-
-	for(int i = 0 ; i < 10000 ; ++i) {      // ML Iteration.
-
+		
+	for(int i = 0 ; i < 1 ; ++i) {      // ML Iteration.
+	
 		for(int j = 0 ; j < NUM_KEY ; ++j)
 			for(int k = 0 ; k < NUM_VALUE ; ++k)
-				vals[j][k] = 1;
-
-		client.push(keys, (double **)vals, NUM_KEY, NUM_VALUE, i);
-
-
+				vals[j][k] = 4;
+	double startT = clock();	
+		client.push(keys, (SENDTYPE **)vals, NUM_KEY, NUM_VALUE, i);
+	double totalT = (clock() - startT)/ CLOCKS_PER_SEC;
+		std::cout << totalT << endl;
 		//	DO ML COMPUTE.
 
 
