@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 	//paramClient client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()));
 
 	grpc::ChannelArguments channelArgs;
-    channelArgs.SetInt("GRPC_ARG_MAX_MESSAGE_LENGTH", 100 * 1024 * 1024);
+    	channelArgs.SetInt("grpc.max_receive_message_length", 64 * 1024 * 1024);
 	paramClient client(grpc::CreateCustomChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials(), channelArgs));
 	int* keys = new int[NUM_KEY];
 	for(int i = 0 ; i < NUM_KEY ; ++i)
